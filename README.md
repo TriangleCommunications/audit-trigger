@@ -3,7 +3,7 @@
 A simple, customizable table audit system for PostgreSQL implemented using
 triggers.
 
-Uses changes from 2ndQuadrant/audit-trigger/pull/32 to use json instead of hstore. 
+Uses changes from [/pull/32](https://github.com/2ndQuadrant/audit-trigger/pull/32) to use json instead of hstore. 
 
 ## How to use
 

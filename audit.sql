@@ -74,6 +74,7 @@ DECLARE
     h_old jsonb;
     h_new jsonb;
     excluded_cols text[] = ARRAY[]::text[];
+    col text;
 BEGIN
     IF TG_WHEN <> 'AFTER' THEN
         RAISE EXCEPTION 'audit.if_modified_func() may only run as an AFTER trigger';
@@ -101,7 +102,11 @@ BEGIN
     END IF;
 
     IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
-        audit_row.row_data = row_to_json(OLD)::JSONB - excluded_cols;
+        IF excluded_cols IS NOT NULL THEN
+            FOREACH col IN ARRAY excluded_cols LOOP
+                audit_row.row_data = row_to_json(OLD)::JSONB - col;
+            END LOOP;
+        END IF;
 
         --Computing differences
 		SELECT
@@ -115,9 +120,17 @@ BEGIN
             RETURN NULL;
         END IF;
     ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
-        audit_row.row_data = row_to_json(OLD)::JSONB - excluded_cols;
+        IF excluded_cols IS NOT NULL THEN
+            FOREACH col IN ARRAY excluded_cols LOOP
+                audit_row.row_data = row_to_json(OLD)::JSONB - col;
+            END LOOP;
+        END IF;
     ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
-        audit_row.row_data = row_to_json(NEW)::JSONB - excluded_cols;
+        IF excluded_cols IS NOT NULL THEN
+            FOREACH col IN ARRAY excluded_cols LOOP
+                audit_row.row_data = row_to_json(OLD)::JSONB - col;
+            END LOOP;
+        END IF;
     ELSIF (TG_LEVEL = 'STATEMENT' AND TG_OP IN ('INSERT','UPDATE','DELETE','TRUNCATE')) THEN
         audit_row.statement_only = 't';
     ELSE
@@ -131,7 +144,6 @@ $body$
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = pg_catalog, public;
-
 
 COMMENT ON FUNCTION audit.if_modified_func() IS $body$
 Track changes to a table at the statement and/or row level.

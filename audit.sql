@@ -246,6 +246,6 @@ END;
 $body$
 language 'plpgsql';
 
-COMMENT ON FUNCTION audit.trim_table() IS $body$
+COMMENT ON FUNCTION audit.trim_table(length varchar) IS $body$
 Remove all logs that are over a year old (helps keep indexing times down)
 $body$;

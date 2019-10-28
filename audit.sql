@@ -81,16 +81,16 @@ BEGIN
     END IF;
 
     audit_row = ROW(
-        nextval('audit.logged_action_id_seq'),        -- id
-        TG_TABLE_SCHEMA::text,                        -- schema_name
-        TG_TABLE_NAME::text,                          -- table_name
-        session_user::text,                           -- session_user_name
-        current_timestamp,                            -- action_tstamp_tx
-        current_setting('application_name'),          -- client application
-        current_query(),                              -- top-level query or queries (if multistatement) from client
-        substring(TG_OP,1,1),                         -- action
-        NULL, NULL,                                   -- row_data, changed_fields
-        'f'                                           -- statement_only
+        nextval('audit.logged_action_id_seq'),    -- id
+        TG_TABLE_SCHEMA::text,                    -- schema_name
+        TG_TABLE_NAME::text,                      -- table_name
+        session_user::text,                       -- session_user_name
+        current_timestamp,                        -- timestamp
+        current_setting('application_name'),      -- client application
+        current_query(),                          -- top-level query or queries (if multistatement) from client
+        substring(TG_OP,1,1),                     -- action
+        NULL, NULL,                               -- row_data, changed_fields
+        'f'                                       -- statement_only
     );
 
     IF NOT TG_ARGV[0]::boolean IS DISTINCT FROM 'f'::boolean THEN
@@ -99,14 +99,15 @@ BEGIN
 
     IF TG_ARGV[1] IS NOT NULL THEN
         excluded_cols = TG_ARGV[1]::text[];
+    ELSE
+        excluded_cols = '{}'::JSONB;
     END IF;
 
     IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
-        IF excluded_cols IS NOT NULL THEN
-            FOREACH col IN ARRAY excluded_cols LOOP
-                audit_row.row_data = row_to_json(OLD)::JSONB - col;
-            END LOOP;
-        END IF;
+        audit_row.row_data = row_to_json(OLD)::JSONB;
+        FOREACH col IN ARRAY excluded_cols LOOP
+            audit_row.row_data = row_to_json(audit_row.row_data)::JSONB - col;
+        END LOOP;
 
         --Computing differences
 		SELECT
@@ -120,17 +121,15 @@ BEGIN
             RETURN NULL;
         END IF;
     ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
-        IF excluded_cols IS NOT NULL THEN
-            FOREACH col IN ARRAY excluded_cols LOOP
-                audit_row.row_data = row_to_json(OLD)::JSONB - col;
-            END LOOP;
-        END IF;
+        audit_row.row_data = row_to_json(OLD)::JSONB;
+        FOREACH col IN ARRAY excluded_cols LOOP
+            audit_row.row_data = row_to_json(audit_row.row_data)::JSONB - col;
+        END LOOP;
     ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
-        IF excluded_cols IS NOT NULL THEN
-            FOREACH col IN ARRAY excluded_cols LOOP
-                audit_row.row_data = row_to_json(OLD)::JSONB - col;
-            END LOOP;
-        END IF;
+        audit_row.row_data = row_to_json(NEW)::JSONB;
+        FOREACH col IN ARRAY excluded_cols LOOP
+            audit_row.row_data = row_to_json(audit_row.row_data)::JSONB - col;
+        END LOOP;
     ELSIF (TG_LEVEL = 'STATEMENT' AND TG_OP IN ('INSERT','UPDATE','DELETE','TRUNCATE')) THEN
         audit_row.statement_only = 't';
     ELSE

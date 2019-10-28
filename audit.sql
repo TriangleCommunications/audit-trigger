@@ -235,3 +235,17 @@ ORDER BY schema, audited_table;
 COMMENT ON VIEW audit.audited_table IS $body$
 View showing all tables with auditing set up. Ordered by schema, then table.
 $body$;
+
+CREATE OR REPLACE FUNCTION audit.trim_table(length varchar default '1 year') RETURNS void AS $body$
+DECLARE
+    _q_txt text;
+BEGIN
+    _q_txt = 'DELETE from audit.logged_action where timestamp < CURRENT_DATE - interval ''' || length || '''';
+    EXECUTE _q_txt;
+END;
+$body$
+language 'plpgsql';
+
+COMMENT ON FUNCTION audit.trim_table() IS $body$
+Remove all logs that are over a year old (helps keep indexing times down)
+$body$;

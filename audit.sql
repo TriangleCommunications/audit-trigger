@@ -106,7 +106,7 @@ BEGIN
     IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
         audit_row.row_data = row_to_json(OLD)::JSONB;
         FOREACH col IN ARRAY excluded_cols LOOP
-            audit_row.row_data = row_to_json(audit_row.row_data)::JSONB - col;
+            audit_row.row_data = audit_row.row_data::JSONB - col;
         END LOOP;
 
         --Computing differences
@@ -123,12 +123,12 @@ BEGIN
     ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
         audit_row.row_data = row_to_json(OLD)::JSONB;
         FOREACH col IN ARRAY excluded_cols LOOP
-            audit_row.row_data = row_to_json(audit_row.row_data)::JSONB - col;
+            audit_row.row_data = audit_row.row_data::JSONB - col;
         END LOOP;
     ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
         audit_row.row_data = row_to_json(NEW)::JSONB;
         FOREACH col IN ARRAY excluded_cols LOOP
-            audit_row.row_data = row_to_json(audit_row.row_data)::JSONB - col;
+            audit_row.row_data = audit_row.row_data::JSONB - col;
         END LOOP;
     ELSIF (TG_LEVEL = 'STATEMENT' AND TG_OP IN ('INSERT','UPDATE','DELETE','TRUNCATE')) THEN
         audit_row.statement_only = 't';

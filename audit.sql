@@ -143,7 +143,7 @@ $body$
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = pg_catalog, public;
-						
+
 COMMENT ON FUNCTION audit.if_modified_func() IS $body$
 Track changes to a table at the statement and/or row level.
 

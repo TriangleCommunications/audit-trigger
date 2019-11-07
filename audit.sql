@@ -116,7 +116,7 @@ BEGIN
 		FROM jsonb_each_text(row_to_json(NEW)::JSONB) AS tmp_new_row
             JOIN jsonb_each_text(audit_row.row_data) AS tmp_old_row ON (tmp_new_row.key = tmp_old_row.key AND tmp_new_row.value IS DISTINCT FROM tmp_old_row.value);
 
-        IF audit_row.changed_fields = '{}'::JSONB THEN
+        IF audit_row.changed_fields IS NULL THEN
             -- All changed fields are ignored. Skip this update.
             RETURN NULL;
         END IF;
@@ -143,7 +143,7 @@ $body$
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = pg_catalog, public;
-
+						
 COMMENT ON FUNCTION audit.if_modified_func() IS $body$
 Track changes to a table at the statement and/or row level.
 

@@ -42,8 +42,8 @@ BEGIN
     SELECT ARRAY_AGG(column_name) INTO geometry_columns FROM audit.get_geometry_columns(NEW.schema_name, NEW.table_name);
     -- If there are geometry columns, then convert all GeoJSON to text
     IF array_length(geometry_columns, 1) > 0 THEN
-        NEW.row_data = audit.cast_geometry_to_text(NEW.row_data, geometry_columns);
-        NEW.changed_fields = audit.cast_geometry_to_text(NEW.changed_fields, geometry_columns);
+        NEW.row_data = audit.cast_geojson_to_text(NEW.row_data, geometry_columns);
+        NEW.changed_fields = audit.cast_geojson_to_text(NEW.changed_fields, geometry_columns);
     END IF;
     RETURN NEW;
 END

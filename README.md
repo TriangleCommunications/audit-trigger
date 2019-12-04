@@ -6,7 +6,7 @@ triggers. This repo has the following changes:
 * Merged with [/pull/32](https://github.com/2ndQuadrant/audit-trigger/pull/32) to use json instead of hstore
 * Added script for use with PostGIS to convert GeoJSON back into WKB
 
-> PostGIS 3.0 now [automatically converts geometry into GeoJSON](https://gis.stackexchange.com/a/343343/120481). We did not want that, so we created a script that automatically converts GeoJSON back into WKB.
+> PostGIS 3.0 now [automatically converts geometry into GeoJSON](https://trac.osgeo.org/postgis/ticket/1833). We did not want that, so we created a script that automatically converts GeoJSON back into WKB.
 
 ## How to use
 

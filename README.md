@@ -34,3 +34,5 @@ The `audit.audit_table` function allows the user to pass various options to cust
 | `audit_rows` | bool | True | Record each row change, or only audit at a statement level |
 | `audit_query_text` | bool | True | Record the text of the client query that triggered the audit event? |
 | `ignored_cols` | text[] | [] | Columns to exclude from update diffs, ignore updates that change only ignored cols. |
+
+If using Postgres 9.5 or a similar older version, I have modified the audit script to work with that. You can find it on the [9.5 branch](https://github.com/TriangleCommunications/audit-trigger/tree/9.5).

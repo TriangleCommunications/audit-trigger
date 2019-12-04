@@ -1,14 +1,28 @@
 # Audit Trigger
 
 A simple, customizable table audit system for PostgreSQL implemented using
-triggers.
+triggers. This repo has the following changes:
 
-Uses changes from [/pull/32](https://github.com/2ndQuadrant/audit-trigger/pull/32) to use json instead of hstore. 
+* Merged with [/pull/32](https://github.com/2ndQuadrant/audit-trigger/pull/32) to use json instead of hstore
 
 ## How to use
 
-1. Run `audit.sql` file on database
-2. Run `SELECT audit.audit_table('table_name')` to begin auditing a table
+1. Install the auditing schema with the following command:
+```sh
+psql -h <host> -p <port> -U <user> -d <db> -f audit.sql --single-transaction
+```
 
+2. Run `SELECT audit.audit_table('schema.table')` to begin auditing a table
 
-> Note: If inserts are taking too long, you can try to run the `audit.trim_table()` function to remove 
+> Note: If inserts are taking too long, you can try to run the `audit.trim_table()` function to remove any audit logs older than one year
+
+## Customization
+
+The `audit.audit_table` function allows the user to pass various options to customize the behavior:
+
+| argument | type | default | |
+| --- | --- | --- | --- |
+| `target_table` | regclass | | Table name, schema qualified if not on search_path |
+| `audit_rows` | bool | True | Record each row change, or only audit at a statement level |
+| `audit_query_text` | bool | True | Record the text of the client query that triggered the audit event? |
+| `ignored_cols` | text[] | [] | Columns to exclude from update diffs, ignore updates that change only ignored cols. |

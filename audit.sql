@@ -58,8 +58,8 @@ COMMENT ON COLUMN audit.logged_action.session_user_name IS 'Login / session user
 COMMENT ON COLUMN audit.logged_action.timestamp IS 'Statement start timestamp for tx in which audited event occurred';
 COMMENT ON COLUMN audit.logged_action.application_name IS 'Application name set when this audit event occurred. Can be changed in-session by client.';
 COMMENT ON COLUMN audit.logged_action.client_query IS 'Top-level query that caused this auditable event. May be more than one statement.';
-COMMENT ON COLUMN audit.logged_action.action IS 'Action type; I = insert, D = delete, U = update, T = truncate';
-COMMENT ON COLUMN audit.logged_action.row_data IS 'Record value. Null for statement-level trigger. For INSERT this is the new tuple. For DELETE and UPDATE it is the old tuple.';
+COMMENT ON COLUMN audit.logged_action.action IS 'Action type: I, D, U, T (truncate).';
+COMMENT ON COLUMN audit.logged_action.row_data IS 'Record value. Null for statement-level trigger.';
 COMMENT ON COLUMN audit.logged_action.changed_fields IS 'New values of fields changed by UPDATE. Null except for row-level UPDATE events.';
 COMMENT ON COLUMN audit.logged_action.statement_only IS 't if audit event is from an FOR EACH STATEMENT trigger, f for FOR EACH ROW';
 
@@ -107,8 +107,8 @@ BEGIN
 		SELECT
 			jsonb_object_agg(tmp_new_row.key, tmp_new_row.value) AS new_data
 			INTO audit_row.changed_fields
-		FROM jsonb_each_text(row_to_json(NEW)::JSONB) AS tmp_new_row
-            JOIN jsonb_each_text(audit_row.row_data) AS tmp_old_row ON (tmp_new_row.key = tmp_old_row.key AND tmp_new_row.value IS DISTINCT FROM tmp_old_row.value);
+		FROM jsonb_each(row_to_json(NEW)::JSONB) AS tmp_new_row
+            JOIN jsonb_each(audit_row.row_data) AS tmp_old_row ON (tmp_new_row.key = tmp_old_row.key AND tmp_new_row.value::text IS DISTINCT FROM tmp_old_row.value::text);
 
         IF audit_row.changed_fields = '{}'::JSONB THEN
             -- All changed fields are ignored. Skip this update.

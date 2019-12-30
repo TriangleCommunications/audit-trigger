@@ -113,8 +113,8 @@ BEGIN
 		SELECT
 			jsonb_object_agg(tmp_new_row.key, tmp_new_row.value) AS new_data
 			INTO audit_row.changed_fields
-		FROM jsonb_each_text(row_to_json(NEW)::JSONB) AS tmp_new_row
-            JOIN jsonb_each_text(audit_row.row_data) AS tmp_old_row ON (tmp_new_row.key = tmp_old_row.key AND tmp_new_row.value IS DISTINCT FROM tmp_old_row.value);
+		FROM jsonb_each(row_to_json(NEW)::JSONB) AS tmp_new_row
+            JOIN jsonb_each(audit_row.row_data) AS tmp_old_row ON (tmp_new_row.key = tmp_old_row.key AND tmp_new_row.value::text IS DISTINCT FROM tmp_old_row.value::text);
 
         IF audit_row.changed_fields IS NULL THEN
             -- All changed fields are ignored. Skip this update.

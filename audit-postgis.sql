@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION audit.get_geometry_columns(schema_name text, table_name text)
-RETURNS TABLE (column_name text, geometry_type text) AS $$
+RETURNS TABLE (column_name text, geometry_type text, srid int) AS $$
 begin
     RETURN QUERY
-    SELECT f_geometry_column::text as column_name, type::text as geometry_type
+    SELECT f_geometry_column::text as column_name, type::text as geometry_type, geometry_columns.srid::int as srid
     FROM geometry_columns
     WHERE f_table_schema = schema_name
     AND f_table_name = table_name;

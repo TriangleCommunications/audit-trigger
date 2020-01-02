@@ -13,7 +13,7 @@ SET search_path = pg_catalog, public;
 
 COMMENT ON FUNCTION audit.get_geometry_columns(text, text) IS 'Get geometry columns for a given table if any exist.';
 
-CREATE OR REPLACE FUNCTION audit.cast_geojson_to_text(json_data jsonb, geometry_columns TEXT[] DEFAULT ARRAY['geometry']) RETURNS jsonb as $$
+CREATE OR REPLACE FUNCTION audit.cast_geojson_to_text(json_data jsonb, geometry_columns TEXT[] DEFAULT ARRAY['geometry'], srid int DEFAULT 4326) RETURNS jsonb as $$
 DECLARE
     geometry_column text;
     geometry_json jsonb := '{}'::jsonb;
@@ -23,7 +23,7 @@ begin
         IF json_data->>geometry_column IS NOT NULL THEN
             geometry_json = geometry_json || jsonb_build_object(
                 geometry_column,
-                CAST(ST_GeomFromGeoJSON(json_data->>geometry_column) AS TEXT)
+                ST_SetSRID(ST_GeomFromGeoJSON(json_data->>geometry_column), srid)::text
             );
         END IF;
     END LOOP;
@@ -38,12 +38,13 @@ COMMENT ON FUNCTION audit.cast_geojson_to_text(jsonb, TEXT[]) IS 'Convert GeoJSO
 CREATE OR REPLACE FUNCTION audit.convert_geojson() RETURNS trigger AS $$
 DECLARE
     geometry_columns text[];
+    target_srid int;
 BEGIN
-    SELECT ARRAY_AGG(column_name) INTO geometry_columns FROM audit.get_geometry_columns(NEW.schema_name, NEW.table_name);
+    SELECT ARRAY_AGG(column_name), (ARRAY_AGG(srid))[1] INTO geometry_columns, target_srid FROM audit.get_geometry_columns(NEW.schema_name, NEW.table_name);
     -- If there are geometry columns, then convert all GeoJSON to text
     IF array_length(geometry_columns, 1) > 0 THEN
-        NEW.row_data = audit.cast_geojson_to_text(NEW.row_data, geometry_columns);
-        NEW.changed_fields = audit.cast_geojson_to_text(NEW.changed_fields, geometry_columns);
+        NEW.row_data = audit.cast_geojson_to_text(NEW.row_data, geometry_columns, target_srid);
+        NEW.changed_fields = audit.cast_geojson_to_text(NEW.changed_fields, geometry_columns, target_srid);
     END IF;
     RETURN NEW;
 END

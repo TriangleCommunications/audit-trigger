@@ -236,6 +236,7 @@ COMMENT ON VIEW audit.audited_table IS $body$
 View showing all tables with auditing set up. Ordered by schema, then table.
 $body$;
 
+-- TODO move rows to archive table
 CREATE OR REPLACE FUNCTION audit.trim_table(length varchar default '1 year') RETURNS void AS $body$
 DECLARE
     _q_txt text;

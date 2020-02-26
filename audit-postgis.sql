@@ -32,7 +32,7 @@ end
 $$
 language plpgsql;
 
-COMMENT ON FUNCTION audit.cast_geojson_to_text(jsonb, TEXT[]) IS 'Convert GeoJSON back into WKB and cast it to text. This is because trying to copy the row of converted JSON into a table row will give an error if left as-is.';
+COMMENT ON FUNCTION audit.cast_geojson_to_text(jsonb, TEXT[], int) IS 'Convert GeoJSON back into WKB and cast it to text. This is because trying to copy the row of converted JSON into a table row will give an error if left as-is.';
 
 -- Create trigger for convenience, don't have to modify audit functions if we add this trigger after
 CREATE OR REPLACE FUNCTION audit.convert_geojson() RETURNS trigger AS $$

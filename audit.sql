@@ -65,6 +65,7 @@ COMMENT ON COLUMN audit.logged_action.statement_only IS 't if audit event is fro
 
 CREATE INDEX action_timestamp_idx ON audit.logged_action(timestamp);
 CREATE INDEX action_action_idx ON audit.logged_action(action);
+CREATE INDEX action_row_data_id_idx ON audit.logged_action((row_data->>'id')) WHERE row_data->>'id' IS NOT NULL;
 
 CREATE OR REPLACE FUNCTION audit.if_modified_func() RETURNS TRIGGER AS $body$
 DECLARE
